@@ -1,0 +1,24 @@
+# Title: Software framework for the processing and statistical analysis of multivariate MS-data
+# Owner: Laboratory of Integrative Metabolomics (LIMET), Ghent university
+# Creator: Dr. Marilyn De Graeve
+# Maintainer: <limet@ugent.be>
+# Repository: Hyperparameter_optimization_statistics
+
+# Description: Performs multivariate data analysis on metabolomics feature matrices, depending on the specified research questions. Depending on the questions proposed in the sampleMetadata, OPLS-DA, PLS, LIMMA and/or PCA models are calculated when possible.
+#			   A hyperparameter optimization is included, where the optimal normalization strategy is calculated. For this, information about your groups should be present in ‘Projection1’.
+# Input: 
+# -	Configuration.R
+# -	VariableMetadata.txt
+# -	SampleMetadata.txt
+# Output: 
+# -	In case of hyperparameter optimization: folder param with all plots for each normalization combination, the optimal combination and a table with scores for each normalization combination 
+# -	Feature matrices with feature intensities after various steps of normalization/transformation/scaling
+# -	Skew-Kurt plots and Shapiro Wilk tests for evaluations of normality distributions of variables
+# -	Per pairwise comparison:
+#   o	Model plots and parameters (OPLS-DA)
+#   o	Tables of significant variables (OPLS-DA)
+# -	Per multiple comparison:
+#   o	Model plots and parameters (PLS)
+#   o	Tables of ranked variables (LIMMA)
+# -	Per projection:
+#   o	Model plots (PCA)

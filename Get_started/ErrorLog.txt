@@ -1,0 +1,173 @@
+# Title: Software framework for the processing and statistical analysis of multivariate MS-data
+# Owner: Laboratory of Integrative Metabolomics (LIMET), Ghent university
+# Creator: Dr. Marilyn De Graeve
+# Maintainer: <limet@ugent.be>
+# Script: ErrorLog
+
+
+##########Frequently got errors##########
+#### MAIN ####
+Error in setwd(path_R_scripts) : cannot change working directory
+= forget to change path of computer, or typing error in folder "R_scripts" (eg. Rscripts)
+
+Error in setwd(path_data_in) : cannot change working directory
+= path is correct, problem: projectname wrong (eg written with space), non-existent folder to input (development after source config w wrong name)
+
+Error : cannot allocate vector of size 7.8 Mb
+or 
+killed during process 
+= not enough RAM for R pipeline to compute (probably step annotate from part pre-processing Thermo), increase RAM of Rbox if possible
+
+Not engough space
+= hard drive is full, free up space for calculating
+
+Error in file(file, ifelse(append, "a", "w")) : cannot open the connection
+= close excel, close other files opened, check path in main.r correct 
+
+Error in file(filename, "r", encoding = encoding): cannot open the connection
+Calls: source -> file
+In addition: Warning message: In file (filename, "r", encoding = encoding): cannot open file 'configuration.R': No such file or directory
+Execution halted
+= configuration.r.r extension is wrong, check configuration.r instead of twice suffix .r
+
+(process:5453): Pango-WARNING **: Invalid UTF-8 string passed to pango_layout_set_text()
+= created/exported txt can be in wrong format (incorrect UTF-8), copy/paste from txt to txt to solve.
+
+
+####PART 2: Statistical/multivariate analysis####
+Error in file(file, "rt") : cannot open the connection
+Calls: source ... eval -> load_variableMetadata -> read.table -> file
+= config checks if pipeline/extern correct, typo's config vs files.
+
+Error in file(file, "rt") : cannot open the connection
+In addition: Warning message:
+In file(file, "rt") :
+  cannot open file '220221_VG_Breed90new_SampleMetaData.txt': No such file or directory
+Error in file(file, "rt", encoding = fileEncoding) : 
+  cannot open the connection
+In addition: Warning message:
+In file(file, "rt", encoding = fileEncoding) :
+  cannot open file '220221_VG_Breed90new_SampleMetaData.txt': No such file or directory
+= check config is VARIABLEMETADATA_FROM_PIPELINE selected and your filename VM is not same as projectname: select VARIABLEMETADATA_EXTERN to solve
+= check typos in SM, VM name in configuration eg .txt.txt
+
+Error: min(variableMetadata[, COLLUMN_NR_START_SAMPLES:ncol(variableMetadata)]) >=  .... is not TRUE
+= error in loading VM, no negative/empty numbers allowed in intensities
+
+Error in load_sampleMetadata(INPUT_SAMPLES) : 
+  Can not read SM.txt files, check if UTF-16/UTF-8/ASCII format
+Calls: source -> withVisible -> eval -> eval -> load_sampleMetadata
+= check correct name SM in config, also check file not saved as "sampleMetadata.txt.txt", or exported wrong (txt, tab delimited)
+
+Error in transpose(variableMetadata_from_start_samples) : 
+  object must be an array
+= close and restart Rbox, still some wrong variable in memory/global environment
+  
+Error: "SampleName" %in% colnames(sampleMetadata) is not TRUE
+= variablemetadata ipv sampleMetadata file in config file (or saved wrong txt no tab seperator)
+
+Error in type.convert(data[[i]], as.is = as.is[i], dec = dec, numerals = numerals,  : 
+  invalid multibyte string at '<b0>C'
+Calls: source ... eval -> load_sampleMetadata -> read.table -> type.convert
+Execution halted
+= load SM lukt niet in hyperparamoptim, wel in statist analysis! 
+added UTF-16 try if fails + readable error message if other format issue in future
+2nd error: anso needed to remove 2 columns with in body '/' and '°'
+
+Error in FUN(X[[i]], ...) : sample size must be between 3 and 5000
+= normalize check, must be min 3 samples, max 5000 samples (samples+QC, samples, ...)
+or NA present (because extra rows in raw variablemetadata: CompIDx NA NA NA...)
+or #, °C, spaces ... present. check sampleMetadata-merged to see if ok?
+or SampleName in variableMetadata are not exact same as in sampleMetadata (name, amount, typo)
+or info in SM not exact as described in READ_ME (eg sample instead of Sample as Type column)
+
+>fit2 <- eBayes(fit2) #empirical Bayes moderated t-statistics and associated Benjamini Hochberg adjusted p-values 
+Error in .ebayes(fit = fit, proportion = proportion, stdev.coef.lim = stdev.coef.lim,  : 
+  No residual degrees of freedom in linear model fits
+= not enough samples to perform t-test (eg. only one sample)
+
+Error: ncol(sampleMetadata) == (COLLUMN_NR_PROJECTION1 + AMOUNT_OF_PROJECTIONS -  .... is not TRUE
+= kijk nr config file na, verwijder evuentuele hidden/emtpy columns in SM and retry
+
+Error: nrow(df1) == nrow(df2) is not TRUE
+= fout thv merge_accoding_to_SampleName function()
+komt van loading SM data: stopifnot(ncol(sampleMetadata) == (COLLUMN_NR_PROJECTION1 + AMOUNT_OF_PROJECTIONS-1)) 
+nr col variable (after merge) not set correct
+moeten evenveel sampleNames zijn in biede df's
+samplenames moeten in varaiblemetadata starten op col=20 (tenzij merge gedaan is) zie read_me voor namen col's
+#projection is last collumn
+= 2nd stomste reden ooit: bij een col (projection) extra cell benoemd die niet met staal overeen komt, maw extra line... staal 'x'
+
+stopifnot(NA %in% indx == FALSE) #variables must start with number
+# load samplemetadata
+
+Error: TRUE %in% indx == TRUE is not TRUE
+komt van loading variablemetadata: geen cijfers/floats als variableen
+#intensities variables are float numbers with decimal (eg. 1000000.00), no NA/inf/"1,000,000" values
+ 
+Error: NA %in% indx == FALSE is not TRUE
+= saved wrong from excel, txt but nu no tab seperator chosen 
+see as load variablemetadata wrong: 1 line with strange symbols.
+= 2nd if remains: samplename does not start with number (load sm part: indx <- as.numeric(substring(sampleMetadata$SampleName[1], 1, 1)) 
+														stopifnot(NA %in% indx == FALSE) #variables must start with number)
+
+Error in data.frame(..., check.names = FALSE) : 
+  row names contain missing values
+= compID not named, check same amount of compIDs and intensities length
+
+Error in Ops.data.frame(sampleMetadata[rownr, COLLUMN_NR_START_VARIABLES:length(sampleMetadata)],  :
+  ‘/’ only defined for equally-sized data frames
+= internal standard normalisation, check MZ-value of IS and check PPM deviation (probably too high)
+
+Error in which(unlist(lapply(nsamples_QC_matrix, function(x) !all(is.na(x))))) : 
+  argument to 'which' is not logical
+Calls: source ... withVisible -> eval -> eval -> [ -> [.data.frame -> which
+In addition: There were 12 warnings (use warnings() to see them)
+= after normalisation/log/pareto you have alle NA's as values (zero after normalisation), so, did you perform normalisation twice, eg. input is already normalized data?
+
+Error in FUN(X[[i]], ...) : all 'x' values are identical
+calls: source ... Sharipo_Wilk_test -> sapply -> sapply -> lapplt -> fun
+= after normalisation (eg. IS normalisation), gives for some features identical intensitites (0), since devided by very high/low IS-intensity
+= select better normalisation method
+
+Error in `[.data.frame`(scorematrix, , 2) : undefined columns selected
+= slechts 1dim voor plsda scores dus min 2 nodig voor plot + berek hotelling ellipse, geen plot (normaal fixed)
+
+ Error : No model was built because the predictive component was not significant
+> geen oplsda model
+
+Error in solve.default(cov(tCompMN)) : 
+  system is computationally singular: reciprocal condition number = 6.10698e-48
+> oplsda model gemaakt maar geen scoreplot ku maken, dus probleem bij line plot(opls_comp)*** todo check real error 
+ 
+
+@loess normalisation:
+Error in knnimp.internal(x, k, imiss, irmiss, p, n, maxp = maxp) : 
+  NA/NaN/Inf in foreign function call (arg 1)
+In addition: There were 50 or more warnings (use warnings() to see the first 50) 
+>warnings()
+Warning messages:
+1: In simpleLoess(y, x, w, span, degree = degree, parametric = parametric,  ... :
+  span too small.   fewer data values than degrees of freedom.
+2: In simpleLoess(y, x, w, span, degree = degree, parametric = parametric,  ... :
+  pseudoinverse used at 0.905
+3: In simpleLoess(y, x, w, span, degree = degree, parametric = parametric,  ... :
+  neighborhood radius 2.095
+> set in data_statistics span = 1 ipv 0.75 (default) + reload scripts in main.r 
+ 
+Error in `$<-.data.frame`(`*tmp*`, "SampleName", value = c("X0IPDSH160_165_244",  : 
+ replacement has 44 rows, data has 0
+= check if ORDER_NR_OF_FIRST_QC , COLLUMN_NR_TYPE, ... are correct
+=also, must begin and end with with min. 2 QCs for LOESS algorthm!, see read_me
+=also, in case of IQC normalisation: if start with IQC before samples, min. 2 IQC need to be present (or none)
+=at end of run, also need QC, do not end with a sample
+
+@LIMMA multiple comparison:
+Error in .ebayes(fit= fit, proportion = proportion, stdev.coef.lin = stdev.coef.lin, :
+  No residual degrees of freedom in linear model fits
+Call: source -> withVisible -> eval -> eval -> eBayes -> .ebayes
+= not enough samples to perform lineatr model fit (eg. only one sample per group in Mcomp)
+
+
+#
+####################
