@@ -405,6 +405,10 @@ for(filter1 in 1:amount_of_filter1){
             
             #devide by sum per sample
             normalized <-  apply(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)], 1, function(x){t(x/sum(x)) }) #iterate over rows =1 (samples), but saves results as column!!! 
+            if(is.nan(mean(normalized))){
+              #in case (when working with sparse data: 1 sample with for all features area=0, x devide sum(x) = /0 = NaN
+              normalized <- data.frame(sapply(as.data.frame(normalized), function(x) ifelse(is.nan(x), 0, x)))
+            }
             sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)] <- t(normalized) #needs to be transposed for correct tic-norm
             
             #must be re-scaled to same order of scale (afrondingsfouten bij kleine getallen tijdens berek PCA, daarom all getallen maal zelfde factor)
@@ -421,6 +425,47 @@ for(filter1 in 1:amount_of_filter1){
             #'sumarizednormalized' named at lca
             #= intensity sample 1 / max(intenstity all samples) for 1 metabolite
             sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)] <- apply(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)], 2, function(x) x/max(x)) #iterate over cols =2 (compids)
+          }
+                                                                                        if(NORMALIZE_METHOD1[ticparam] == NORMALIZE_WITH_MEDIAN){
+            #this normalization will be based on the median of all intensity values in the mass spectrum, medI 
+            #= intensity compID 1 / median(intenstity alls compIDs) for 1 sample/spectrum
+            average_before <- mean(as.matrix(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)])) #sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)])
+            
+            #devide by sum per sample
+            normalized <-  apply(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)], 1, function(x){t(x/median(x)) }) #iterate over rows =1 (samples), but saves results as column!!! 
+            if(is.nan(mean(normalized))){
+              #in case (when working with sparse data: 1 sample with for all features area=0, x devide sum(x) = /0 = NaN OR Inf*
+              #*) "Depending on the programming environment and the type of number (e.g. floating point, integer) being divided by zero, it may generate positive or negative infinity by the IEEE 754 floating point standard [...]"
+              normalized <- data.frame(sapply(as.data.frame(normalized), function(x) ifelse(is.nan(x), 0, x)))
+              normalized <- data.frame(sapply(as.data.frame(normalized), function(x) ifelse(is.infinite(x), 0, x)))
+            }
+            if(min(normalized) == max(normalized)){
+              #in case sparse data, can be ALL data becomes 0 values... so best errormessage
+              stop("ERROR: Part II: multivariate analysis stopped because median normalisation is not applicable on sparse data.")
+            }
+            sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)] <- t(normalized) #needs to be transposed for correct tic-norm
+
+            #must be re-scaled to same order of scale (afrondingsfouten bij kleine getallen tijdens berek PCA, daarom all getallen maal zelfde factor)
+            average_after <- mean(as.matrix(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)]))
+            factor <- average_before/average_after
+            sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)] <- factor * sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)]
+          }
+          if(NORMALIZE_METHOD1[ticparam] == NORMALIZE_WITH_QUANTILE){
+            #https://en.wikipedia.org/wiki/Quantile_normalization
+            #https://www.statology.org/quantile-normalization-in-r/ 
+            average_before <- mean(as.matrix(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)])) #sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)])
+            
+            #perform quantile normalization
+            library(preprocessCore)
+            sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)] <- as.data.frame(normalize.quantiles(as.matrix(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)])))
+            
+            #check if correct see quantiles same, ok
+            #sapply(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)], function(x) quantile(x, probs = seq(0, 1, 1/4)))
+            
+            #must be re-scaled to same order of scale (afrondingsfouten bij kleine getallen tijdens berek PCA, daarom all getallen maal zelfde factor)
+            average_after <- mean(as.matrix(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)]))
+            factor <- average_before/average_after
+            sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)] <- factor * sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)]
           }
           if(NORMALIZE_METHOD1[ticparam] == NORMALIZE_NOT1){
             sampleMetadata <- sampleMetadata #nothing changes
@@ -717,13 +762,13 @@ for(filter1 in 1:amount_of_filter1){
                 test_category <- score_weights_pca_comp$Group[-ran]
                 
                 ##PCA-KNN
-                #library(class) ##run knn function
-                #KNN_NR <- min(summary(comp))-1 #amount of smallest group in comp -1 so odd number
-                #if(KNN_NR %% 2 == 0){
-                #  KNN_NR <- KNN_NR-1 #if even: -2 so odd number
-                #} 
-                #pred <- knn(as.matrix(train),as.matrix(test),cl=as.matrix(train_category),k=KNN_NR) #/search 4 nearest neighors
-                #pred <- as.character(pred)
+                library(class) ##run knn function
+                KNN_NR <- min(summary(comp))-1 #amount of smallest group in comp -1 so odd number
+                if(KNN_NR %% 2 == 0){
+                  KNN_NR <- KNN_NR-1 #if even: -2 so odd number
+                } 
+                pred <- knn(as.matrix(train),as.matrix(test),cl=as.matrix(train_category),k=KNN_NR) #/search 4 nearest neighors
+                pred <- as.character(pred)
                 #length(pred)
                 
                 
@@ -741,12 +786,12 @@ for(filter1 in 1:amount_of_filter1){
 
                 
                 ##PCA-LDA
-                library(MASS)
-                y <- as.matrix(train_category)
-                y <- as.factor(y)
-                model <- lda(y ~ ., data = train) #train is df
-                pred <- predict(model, test) #test is df
-                pred <- as.character(pred$class)
+                #library(MASS)
+                #y <- as.matrix(train_category)
+                #y <- as.factor(y)
+                #model <- lda(y ~ ., data = train) #train is df
+                #pred <- predict(model, test) #test is df
+                #pred <- as.character(pred$class)
                 #length(pred)
                 
                 
@@ -799,10 +844,10 @@ for(filter1 in 1:amount_of_filter1){
                   #print(paste0(KNN_NR, " knn's -> accuracy: ", score))
                 }
                 
-                PCs_QCs <- score_weights_pca_comp[score_weights_pca_comp$Group == nr_QC_projection1,]
-                PC1_QCs <- mean(PCs_QCs$PC1)
-                PC2_QCs <- mean(PCs_QCs$PC2)
-                score <- PC2_QCs
+                #PCs_QCs <- score_weights_pca_comp[score_weights_pca_comp$Group == nr_QC_projection1,]
+                #PC1_QCs <- mean(PCs_QCs$PC1)
+                #PC2_QCs <- mean(PCs_QCs$PC2)
+                #score <- PC2_QCs
                 #since have to rewrite all, work with score op pc1 (number, so averae cv etc.)
                 scores <- c(scores, score)
               }
@@ -871,4 +916,3 @@ end_time <- Sys.time()
 print(end_time - start_time)
 #
 #####################
-
