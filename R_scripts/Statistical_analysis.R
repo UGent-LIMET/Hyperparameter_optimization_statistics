@@ -1,6 +1,6 @@
 # Title: Software framework for the processing and statistical analysis of multivariate MS-data
 # Owner: Laboratory of Integrative Metabolomics (LIMET), Ghent university
-# Creator: Dr. Marilyn De Graeve
+# Creator: Dr. Marilyn De Graeve; parts obtained from Arno Vanderbeke; Tiffeny De Coninck
 # Maintainer: <limet@ugent.be>
 # Script: Part II: multivariate analysis
 
@@ -322,6 +322,10 @@ if(NORMALIZE_METHOD1 == NORMALIZE_WITH_TIC){
   
   #devide by sum per sample
   normalized <-  apply(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)], 1, function(x){t(x/sum(x)) }) #iterate over rows =1 (samples), but saves results as column!!! 
+  if(is.nan(mean(normalized))){
+    #in case (when working with sparse data: 1 sample with for all features area=0, x devide sum(x) = /0 = NaN 
+    normalized <- data.frame(sapply(as.data.frame(normalized), function(x) ifelse(is.nan(x), 0, x)))
+  }
   sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)] <- t(normalized) #needs to be transposed for correct tic-norm
   
   #must be re-scaled to same order of scale (afrondingsfouten bij kleine getallen tijdens berek PCA, daarom all getallen maal zelfde factor)
@@ -338,6 +342,47 @@ if(NORMALIZE_METHOD1 == NORMALIZE_WITH_MAX){
   #'sumarizednormalized' named at lca
   #= intensity sample 1 / max(intenstity all samples) for 1 metabolite
   sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)] <- apply(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)], 2, function(x) x/max(x)) #iterate over cols =2 (compids)
+}
+if(NORMALIZE_METHOD1 == NORMALIZE_WITH_MEDIAN){
+  #this normalization will be based on the median of all intensity values in the mass spectrum, medI 
+  #= intensity compID 1 / median(intenstity alls compIDs) for 1 sample/spectrum
+  average_before <- mean(as.matrix(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)])) #sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)])
+  
+  #devide by sum per sample
+  normalized <-  apply(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)], 1, function(x){t(x/median(x)) }) #iterate over rows =1 (samples), but saves results as column!!! 
+  if(is.nan(mean(normalized))){
+    #in case (when working with sparse data: 1 sample with for all features area=0, x devide sum(x) = /0 = NaN OR Inf*
+    #*) "Depending on the programming environment and the type of number (e.g. floating point, integer) being divided by zero, it may generate positive or negative infinity by the IEEE 754 floating point standard [...]"
+    normalized <- data.frame(sapply(as.data.frame(normalized), function(x) ifelse(is.nan(x), 0, x)))
+    normalized <- data.frame(sapply(as.data.frame(normalized), function(x) ifelse(is.infinite(x), 0, x)))
+  }
+  if(min(normalized) == max(normalized)){
+    #in case sparse data, can be ALL data becomes 0 values... so best errormessage
+    stop("ERROR: Part II: multivariate analysis stopped because median normalisation is not applicable on sparse data.")
+  }
+  sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)] <- t(normalized) #needs to be transposed for correct tic-norm
+  
+  #must be re-scaled to same order of scale (afrondingsfouten bij kleine getallen tijdens berek PCA, daarom all getallen maal zelfde factor)
+  average_after <- mean(as.matrix(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)]))
+  factor <- average_before/average_after
+  sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)] <- factor * sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)]
+}
+if(NORMALIZE_METHOD1 == NORMALIZE_WITH_QUANTILE){
+  #https://en.wikipedia.org/wiki/Quantile_normalization
+  #https://www.statology.org/quantile-normalization-in-r/ 
+  average_before <- mean(as.matrix(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)])) #sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)])
+  
+  #perform quantile normalization
+  library(preprocessCore)
+  sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)] <- as.data.frame(normalize.quantiles(as.matrix(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)])))
+  
+  #check if correct see quantiles same, ok
+  #sapply(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)], function(x) quantile(x, probs = seq(0, 1, 1/4)))
+  
+  #must be re-scaled to same order of scale (afrondingsfouten bij kleine getallen tijdens berek PCA, daarom all getallen maal zelfde factor)
+  average_after <- mean(as.matrix(sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)]))
+  factor <- average_before/average_after
+  sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)] <- factor * sampleMetadata[,COLLUMN_NR_START_VARIABLES:length(sampleMetadata)]
 }
 if(NORMALIZE_METHOD1 == NORMALIZE_NOT){
   sampleMetadata <- sampleMetadata #nothing changes
@@ -422,7 +467,7 @@ png(paste(name_project,'_skewkurtplot_normalized_samples.png', sep=""), width=7,
 plot(skewkurtplot)
 dev.off()
 
-## Log transformation and Pareto scaling for samples + QCs toghether
+## Log transformation and Pareto scaling for samples + QCs together
 lognormalizedMetadata_samples_QC <- log_transformation(normalizedMetadata)
 scalednormalizedMetadata_samples_QC <- Pareto_scaling(lognormalizedMetadata_samples_QC)
 name_df <- 'normalized, log transformed and pareto scaled samples and QC Metadata.txt'
@@ -1065,7 +1110,7 @@ if(AMOUNT_OF_COMPARISONS >= 1){
 ##########LIMMA##########
 nsamples_metadata <- scalednormalizedMetadata_samples[scalednormalizedMetadata_samples$Type == 'Sample',]
 
-## OPLS-DA for each pairwise comparison
+## LIMMA for each pairwise comparison
 if(AMOUNT_OF_COMPARISONS >= 1){
   for(pairwise_comparison in 1:AMOUNT_OF_COMPARISONS){
     
@@ -1137,7 +1182,15 @@ if(AMOUNT_OF_COMPARISONS >= 1){
     #Export top variables for each combination whitin comparison
     #topTable(fit2, coef=1, adjust="BH") #coef1 = 1e vgl.
     output_coef <- topTable(fit2, coef=1, adjust="BH", number=nrow(fit2)) 
-    output_coef$CompID <- rownames(output_comp)
+    
+    #! sorted from higest t, see compId in rownames (with X)
+    #CompID names not as "X1"
+    variablenames <- rownames(output_coef)
+    variablenames <- substr(variablenames, 2,nchar(variablenames))
+    rownames(output_coef) <- variablenames
+    output_coef$CompID <- rownames(output_coef)
+    
+    #paste VM with topTable stats
     output_coef_with_info <- merge(output_coef, output_comp, by="CompID", sort=FALSE)
     name_df <- paste(name_project, '_LIMMA_Toptable_output_comp_', pairwise_comparison, '_coef_', colnames(fit2), '.txt', sep="")
     write_dataframe_as_txt_file(output_coef_with_info, name_df)
@@ -1166,6 +1219,7 @@ plsda_cum_score <- NULL
 if(AMOUNT_OF_MULTIPLE_COMPARISONS >= 1){
   for(multiple_comparison in 1:AMOUNT_OF_MULTIPLE_COMPARISONS){
     
+    #multiple_comparison <- 1
     print(paste("start calculation multiple comparison ", multiple_comparison, " using PLS", sep=""))
     
     ## PLS-DA for each condition
@@ -1191,6 +1245,8 @@ if(AMOUNT_OF_MULTIPLE_COMPARISONS >= 1){
     
     comp <- as.factor(samples_metadata_comp[,COLLUMN_NR_MULTIPLE_COMPARISON1+multiple_comparison-1])
     
+    samplenames <- samples_metadata_comp$SampleName
+    samplenames <- substr(samplenames, 2, nchar(samplenames)) 
     
     ### PLS-DA plot
     try({
@@ -1422,7 +1478,15 @@ if(AMOUNT_OF_MULTIPLE_COMPARISONS >= 1){
     for(coeficent in 1:ncol(results)){
       #coeficent <- 1
       output_coef <- topTable(fit2, coef=coeficent, adjust="BH", number=nrow(fit2)) 
-      output_coef$CompID <- rownames(output_comp)
+      
+      #! sorted from higest t, see compId in rownames (with X)
+      #CompID names not as "X1"
+      variablenames <- rownames(output_coef)
+      variablenames <- substr(variablenames, 2,nchar(variablenames))
+      rownames(output_coef) <- variablenames
+      output_coef$CompID <- rownames(output_coef)
+      
+      #Export top variables for each combination whitin comparison
       output_coef_with_info <- merge(output_coef, output_comp, by="CompID", sort=FALSE)
       name_df <- paste(name_project, '_LIMMA_Toptable_output_multiple_comp_', multiple_comparison, '_coef_', colnames(fit2)[coeficent], '.txt', sep="")
       write_dataframe_as_txt_file(output_coef_with_info, name_df)
@@ -1431,7 +1495,12 @@ if(AMOUNT_OF_MULTIPLE_COMPARISONS >= 1){
     # Export 1 result {-1,0,1} matrix for multiple comparison
     results <- decideTests(fit2)
     results <- as.data.frame(results)
-    results$CompID <- rownames(output_comp)
+    #CompID names not as "X1"
+    variablenames <- rownames(results)
+    variablenames <- substr(variablenames, 2,nchar(variablenames))
+    rownames(results) <- variablenames
+    results$CompID <- rownames(results)
+    
     results_with_info <- merge(results, output_comp, by="CompID", sort=FALSE)
     name_df <- paste(name_project, '_LIMMA_ResultsTable_output_multiple_comparison', multiple_comparison, '.txt', sep="")
     write_dataframe_as_txt_file(results_with_info, name_df)
@@ -1447,9 +1516,12 @@ if(AMOUNT_OF_MULTIPLE_COMPARISONS >= 1){
     # Export 1 log2 FC matrix for multiple comparison
     #The statistic fit2$F and the corresponding fit2$F.p.value combine the comparisons into one F-test. 
     topTableF_comp <- topTableF(fit2, number=nrow(fit2)) #print for each variable score, no selection adj p <0.05
+    
+    #CompID names not as "X1"
     variablenames <- rownames(topTableF_comp)
     variablenames <- substr(variablenames, 2,nchar(variablenames))
     topTableF_comp$CompID <- variablenames
+    
     topTableF_comp_with_info <- merge(topTableF_comp, output_comp, by="CompID", sort=FALSE)
     name_df <- paste(name_project, '_LIMMA_ToptableF_output_multiple_comparison', multiple_comparison, '.txt', sep="")
     write_dataframe_as_txt_file(topTableF_comp_with_info, name_df)
@@ -1607,7 +1679,7 @@ if(AMOUNT_OF_PROJECTIONS >= 1){
       number_samples <- number_samples-1
     }
     if(PC_AMOUNT == FIXED_PC_AMOUNT){
-      number_samples = FIXED_PC_AMOUNT
+      number_samples <- FIXED_PC_AMOUNT
       if(number_samples >= nrow(samples_matrix_comp_no0)){
         stop("ERROR: Part II: multivariate analysis stopped because number of PCs exceeds number of samples-1.")
       }
@@ -1665,4 +1737,3 @@ end_time <- Sys.time()
 print(end_time - start_time)
 #
 #####################
-
