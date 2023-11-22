@@ -57,6 +57,8 @@ if(RUN_PART_STATISTICAL == RUN_CODE){
   NORMALIZE_WITH_TIC <- 'TIC normalisation'             #'devides the intensity of each variable (metabolite) by the sum of all metabolotite intensities per sample/spectrum (TIC)'
   NORMALIZE_WITH_ITIC <- 'Autoscaling (ITIC)'           #'devides the intensity of each variable (metabolite) by the sum of all metabolotite intensities per CompID (inverse TIC)'
   NORMALIZE_WITH_MAX <- 'Max normalisation'             #'devides the intensity of each variable (metabolite) by the max metabolotite intensity per CompID'
+  NORMALIZE_WITH_MEDIAN <- 'Median normalisation'       #'devides the intensity of each variable (metabolite) by the median of all metabolotite intensities per sample/spectrum (MedI)'
+  NORMALIZE_WITH_QUANTILE <- 'Quantile normalisation'   #'makes the distributions identical in statistical properties across samples'
   NORMALIZE_NOT1 <- 'No TIC normalisation' 				#'if you do not want to perform normalisation, eg. when only coeficient of variance <30% instead'
   
   #NORMALIZE_METHOD options
