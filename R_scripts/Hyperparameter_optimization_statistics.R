@@ -503,7 +503,14 @@ for(filter1 in 1:amount_of_filter1){
               normalized_QC_metadata <- normalize_with_average_QCs(QC_metadata, QC_metadata)
             }
             if(NORMALIZE_METHOD[param] == NORMALIZE_WITH_IQCs){
-              normalized_QC_metadata <- normalize_with_average_QCs(QC_metadata, QC_metadata)
+              normalized_QC_metadata <- normalize_with_average_QCs(QC_metadata, QC_metadata) #this uses average from all QCs 
+              #QC_metadata_use <- QC_metadata[order(QC_metadata$Order),]  ##if keeping QCs and wanting to divide each qc in a pair (based on order) by the average across the pair
+              #QC_only <- data.table(QC_metadata_use[,c(1, 8:ncol(QC_metadata_use))]) 
+              #g <- QC_only[, rep(1:.N, each=2, length=.N)]
+              #nms <- names(QC_only)[-1]
+              #divbyMean <- function(x) replace(x, 1:2, x[1:2]/mean(x[1:2]))
+              #out <- as.data.frame(QC_only[, c(nms) := lapply(.SD[,-1], divbyMean), by=g])
+              #normalized_QC_metadata <- dplyr::relocate(out, 1, .after=last_col())    ##reposition the sample names to last col        
             }
             if(NORMALIZE_METHOD[param] == NORMALIZE_QC_RLSC){
               normalized_QC_metadata <- NULL  #empty because all samples+qc + std+blanks included in loess output samples
