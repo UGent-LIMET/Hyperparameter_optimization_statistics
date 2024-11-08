@@ -389,14 +389,10 @@ if(NORMALIZE_METHOD1 == NORMALIZE_NOT){
 }
 #write_dataframe_as_txt_file(sampleMetadata, 'tic_normalized_sampleMetadata.txt')
 
-
+### this section should be recoded
+# it used to treat samples/QC separately, but due to refinements
+# this is no longer needed
 ### Normalize samples
-if(NORMALIZE_METHOD == NORMALIZE_WITH_QCs){
-  stopifnot("QC" %in% sampleMetadata$Type | "IQC" %in% sampleMetadata$Type)
-  samples_metadata <- sampleMetadata[sampleMetadata$Type == 'Sample',]
-  QC_metadata <- sampleMetadata[sampleMetadata$Type == 'QC'|sampleMetadata$Type == 'IQC',] ##also allow IQC
-  normalized_samples_metadata <- normalize_with_average_QCs(samples_metadata, QC_metadata)
-}
 if(NORMALIZE_METHOD == NORMALIZE_WITH_IQCs){
   stopifnot("QC" %in% sampleMetadata$Type | "IQC" %in% sampleMetadata$Type)
   samples_IQC_metadata <- sampleMetadata[sampleMetadata$Type == 'IQC' | sampleMetadata$Type == 'Sample' |sampleMetadata$Type == 'QC' ,] ##also allow QC
@@ -416,14 +412,11 @@ if(NORMALIZE_METHOD == NORMALIZE_NOT){
 ### Normalize (I)QCs (for plotting in pca-x instead of OPLSDA) 
 if ("IQC" %in% sampleMetadata$Type | "QC" %in% sampleMetadata$Type){
   QC_metadata <- sampleMetadata[sampleMetadata$Type == 'QC' | sampleMetadata$Type == 'IQC',]
-  if(NORMALIZE_METHOD == NORMALIZE_WITH_QCs){
-    normalized_QC_metadata <- normalize_with_average_QCs(QC_metadata, QC_metadata)
-  }
   if(NORMALIZE_METHOD == NORMALIZE_WITH_IQCs){
-    normalized_QC_metadata <- normalize_with_average_QCs(QC_metadata, QC_metadata)
+    normalized_QC_metadata <- NULL  #empty because all samples+qc + std+blanks included in output of samples
   }
   if(NORMALIZE_METHOD == NORMALIZE_QC_RLSC){
-    normalized_QC_metadata <- NULL  #empty because all samples+qc + std+blanks included in loess output samples
+    normalized_QC_metadata <- NULL  #empty because all samples+qc + std+blanks included in output of samples
   }
   if(NORMALIZE_METHOD == NORMALIZE_NOT){
     normalized_QC_metadata <- normalize_not(QC_metadata)

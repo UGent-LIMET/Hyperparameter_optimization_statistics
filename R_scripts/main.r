@@ -9,7 +9,7 @@
 #Working directory
 
 ## options
-PATH_USER <- 'xxx/Pipeline_metabolomics' # example path user
+PATH_USER <- '~/Google Drive/Mijn Drive/Werk-UGent/2024-2-metabolomics/GitHub/hyperparameter_optimization_statistics/' # example path user
   
 CODE_AUTORUN <- 'run code in ternminal automatically'
 CODE_DEVELOPMENT <- 'run code manually in Rstudio for development locally'
@@ -50,7 +50,7 @@ if (CODE_RUN_MODE == CODE_DEVELOPMENT){
 }
 
 #Source configuration and set input folder
-path_data_in <- file.path(PATH, 'Data/Input', name_project) #directory must exist!
+path_data_in <- file.path(PATH, 'Data/Input') #directory must exist!
 setwd(path_data_in)
 source('Configuration.R')
 

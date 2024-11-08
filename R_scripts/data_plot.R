@@ -229,16 +229,16 @@ plot_pcascores <- function(PCAscores_comp, comp) {
   ggplot(PCAscores_comp,aes(x = PCAscores_comp[,1],y=PCAscores_comp[,2]))+
     stat_ellipse(aes(x=PCAscores_comp[,1],y=PCAscores_comp[,2],color=comp),size=1,
                  type="t",level=0.95,show.legend = FALSE,segments=200)+
-    geom_path(data=HotellingellipsePCA_comp,aes(x=HotellingellipsePCA_comp$x,y=HotellingellipsePCA_comp$y),size=1,color='black',linejoin = 'round')+
-    geom_point(aes(fill=comp,shape=comp),color='black',size=SIZE_POINTS)+
+    #geom_path(data=HotellingellipsePCA_comp,aes(x=HotellingellipsePCA_comp$x,y=HotellingellipsePCA_comp$y),size=1,color='black',linejoin = 'round')+
+    geom_point(aes(fill=comp,shape=comp, alpha = 0.2),color='black',size=SIZE_POINTS)+
     theme_customnogridbox()+
     labs(title=paste("PCA score plot ",projection , sep=""), #title="", 
          x=paste("PC 1 (",format(round(PCAoptnumber@R2[1]*100,digits=1),nsmall = 1),"% explained var.)",sep = ""),
          y=paste("PC 2 (",format(round(PCAoptnumber@R2[2]*100,digits=1),nsmall = 1),"% explained var.)",sep = ""),
          fill="Group",color="Group",shape="Group")+
     scale_shape_manual(values=shapes)+ 
-    scale_fill_brewer(type='seq',palette='Blues')+
-    scale_color_brewer(type='seq',palette='Blues')+
+    scale_fill_brewer(type='seq',palette='Set1')+
+    scale_color_brewer(type='seq',palette='Set1')+
     guides(alpha=FALSE) 
 }
 
@@ -338,7 +338,7 @@ plot_boxplot <- function(corr_info) {
   #https://statisticsglobe.com/boxplot-in-r
   #https://www.tutorialgateway.org/r-ggplot2-jitter/
   
-  ggplot(corr_info, aes(x = "Varset1 vs Varset2", y = corr_info$ABSrho)) +    # Create boxplot chart in ggplot2; 
+  ggplot(corr_info, aes(x = "Varset1 vs Varset2", y = ABSrho)) +    # Create boxplot chart in ggplot2; 
     #geom_jitter(position=position_jitter(0.2), alpha = 0.8, color="#9ECAE1")+
     geom_boxplot(fill="#9ECAE1", outlier.color="black") +
     labs(title="", #title=paste0("Boxplot comparison ", pairwise_comparison), 
@@ -352,7 +352,7 @@ plot_boxplot <- function(corr_info) {
 plot_dotplot <- function(corr_info_top) {
   #https://www.tutorialgateway.org/r-ggplot2-jitter/
   
-  ggplot(corr_info_top, aes(x = "Varset1 vs Varset2", y = corr_info_top$ABSrho)) +    # Create boxplot chart in ggplot2; 
+  ggplot(corr_info_top, aes(x = "Varset1 vs Varset2", y = ABSrho)) +    # Create boxplot chart in ggplot2; 
     geom_jitter(alpha = 0.8, color="#9ECAE1", height = 0, width = 0.1)+
     #geom_jitter(position=position_jitter(0.1), alpha = 0.8, color="#9ECAE1")+ #no! get other value on y-axis!
     geom_point(alpha = 0.8, color="#9ECAE1")+ #overlay ALL points if same value

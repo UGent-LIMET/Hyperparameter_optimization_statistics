@@ -92,44 +92,15 @@ test_Shapiro_Wilk_test <- function() {
   stopifnot(numbernormal20 == 8 | numbernormal20 == 16) #8 is samples+qc, 16=qc
 }
 
-normalize_with_average_QCs <- function(df1, df2){
-  #for the intensities of each variable (metabolite): 
-  #devides the samples with the mean intenstity of all QC
-    #df1 <- samples_metadata
-    #df2 <- QC_metadata
-  
-  df2_matrix <- subset(df2, select= -c(3:COLLUMN_NR_START_VARIABLES-1))
-  df2_matrix <- df2_matrix[ ,-1]
-  means_QC <- sapply(df2_matrix, mean)  
-  
-  df1_matrix <- subset(df1, select= -c(3:COLLUMN_NR_START_VARIABLES-1))
-  df1_matrix <- df1_matrix[ ,-1]
-  
-  nrsamples_df1 <- nrow(df1_matrix)
-  df_means <- matrix(means_QC,nrow=nrsamples_df1,ncol=length(means_QC),byrow=TRUE)
-
-  normalized_samples_matrix <- df1_matrix/df_means
-
-  # make normalized df
-  normalized_samples_metadata <- normalized_samples_matrix
-  normalized_samples_metadata$SampleName <- df1$SampleName
-  
-  #remove inf and NA
-  is.na(normalized_samples_metadata) <- sapply(normalized_samples_metadata, is.infinite)
-  normalized_samples_metadata[is.na(normalized_samples_metadata)] <- 0
-
-  return(normalized_samples_metadata)
-}
-
 normalize_with_IQCs <- function(df){
   #for the intensities of each variable (metabolite): 
-  #devides the samples with the mean intenstity of IQC present below the samples
+  #divides the samples by the mean intenstity of IQC(s) present directly downstream of the samples
     #df <- samples_IQC_metadata
   
   #sort based on order run samples
   df <- df[order(df$Order),]
   
-  #in case of blank/standards in between sampels/QCs, so orders skips number: reset order whitin funtion so no skips
+  #in case of blank/standards in between samples/QCs, so orders skips number: reset order within function so no skips
   df$Order <- c(1:nrow(df))
   
   #extra steps for creation of subdfs
@@ -175,16 +146,29 @@ normalize_with_IQCs <- function(df){
   #make sure start with samples as first subdf
   if (subdataframes[[subdf]]$Type[1] == "Sample") {
     subdf <- 1
+    normalized_samples_matrix <- NULL
   }
   if (subdataframes[[subdf]]$Type[1] == "IQC" | subdataframes[[subdf]]$Type[1] == "QC") {
     subdf <- 2
+    # if starts with QC, normalize these and initialize normalized_samples_matrix
+    df2 <- subset(subdataframes[[1]], select = -c(Type2, boolean, Nr_subdf))
+    df2_matrix <- subset(df2, select= -c(3:COLLUMN_NR_START_VARIABLES-1))
+    df2_matrix <- df2_matrix[ ,-1]
+    means_IQC <- sapply(df2_matrix, mean)
+    nrsamples_df2 <- nrow(df2_matrix)
+    df_means_IQC <- matrix(means_IQC,nrow=nrsamples_df2,ncol=length(means_IQC),byrow=TRUE)
+    normalized_samples_matrix <- df2_matrix/df_means_IQC
+    rownames(normalized_samples_matrix) <- seq(1:nrow(normalized_samples_matrix))
+    
   }
   amount_of_subdfs <- length(subdataframes)
   
   #loop normalize for each subdf with samples
-  normalized_samples_matrix <- NULL
+
 
   for (subdf in seq(from=subdf, to=amount_of_subdfs-1, by=2)) {    
+    cat(subdf, " - ")
+    cat(normalized_samples_matrix[1,1], "\n")
     df2 <- subset(subdataframes[[subdf+1]], select = -c(Type2, boolean, Nr_subdf))
     df2_matrix <- subset(df2, select= -c(3:COLLUMN_NR_START_VARIABLES-1))
     df2_matrix <- df2_matrix[ ,-1]
@@ -193,23 +177,31 @@ normalize_with_IQCs <- function(df){
     df1 <- subset(subdataframes[[subdf]], select = -c(Type2, boolean, Nr_subdf))
     df1_matrix <- subset(df1, select= -c(3:COLLUMN_NR_START_VARIABLES-1))
     df1_matrix <- df1_matrix[ ,-1]
-
-    nrsamples_df1 <- nrow(df1_matrix)
-    df_means <- matrix(means_IQC,nrow=nrsamples_df1,ncol=length(means_IQC),byrow=TRUE)
-
-    normalized_samples_df1 <- df1_matrix/df_means
     
-    normalized_samples_matrix <- rbind(normalized_samples_matrix, normalized_samples_df1)
+    nrsamples_df1 <- nrow(df1_matrix)
+    nrsamples_df2 <- nrow(df2_matrix)
+    df_means <- matrix(means_IQC,nrow=nrsamples_df1,ncol=length(means_IQC),byrow=TRUE)
+    df_means_IQC <- matrix(means_IQC,nrow=nrsamples_df2,ncol=length(means_IQC),byrow=TRUE)
+    
+    
+    normalized_samples_df1 <- df1_matrix/df_means
+    normalized_QCs_df2 <- df2_matrix/df_means_IQC
+    
+    normalized_samples_matrix <- rbind(normalized_samples_matrix, 
+                                       normalized_samples_df1, 
+                                       normalized_QCs_df2)
   }
   
   #make normalized df
-  samples_metadata <- df[df$Type == 'Sample',] 
-  samples_metadata <- samples_metadata[order(samples_metadata$Order),]
-
   #Note: works only because before no rownames defined, default rownames are same as ordernr
-  normalized_samples_matrix <- normalized_samples_matrix[order(as.numeric(row.names(normalized_samples_matrix))),]
+  #get samplenames from global variable samples_QC_metadata
+  samples_IQC_metadata <- samples_IQC_metadata[order(samples_IQC_metadata$Order),]
+  type_normalized <- samples_IQC_metadata$Type # get type for obtaining the right subset
+  names_normalized <- samples_IQC_metadata$SampleName#[min(which(type_normalized=="Sample")):max(c(which(type_normalized=="IQC"), which(type_normalized=="QC")))]
+    # get names starting with the first sample until the last (I)QC, samples after IQC are not normalized
+  normalized_samples_matrix1 <- normalized_samples_matrix[order(as.numeric(row.names(normalized_samples_matrix))),]
   normalized_samples_metadata <- normalized_samples_matrix
-  normalized_samples_metadata$SampleName <- samples_metadata$SampleName
+  normalized_samples_metadata$SampleName <- names_normalized
   
   #remove inf and NA
   is.na(normalized_samples_metadata) <- sapply(normalized_samples_metadata, is.infinite)
@@ -385,6 +377,7 @@ correlation_analysis_loop <- function(scaledmatrix_samples1, scaledmatrix_sample
   # assign values to that presized data frame 
   Acols <- ncol(A.data)
   Bcols <- ncol(B.data)
+  
   for (i in 1:Arows) {
     # get A data
     Ai <- as.numeric(A.data[i, 1:Acols])
@@ -395,19 +388,23 @@ correlation_analysis_loop <- function(scaledmatrix_samples1, scaledmatrix_sample
       # get B data
       Bj <- as.numeric(B.data[j, 1:Bcols])
       Bname <- rownames(B.data)[j]
-      # run test
-      correln <- cor.test(Ai, Bj, use="complete", method="spearman", adjust="fdr", alpha=.05)
-      rho <- round(correln$estimate,3)
-      p.val <- round(correln$p.value,3)
+      # run test, unless less than 3 non-NA, then return NA
+      if(sum(is.na(Ai)) >= (length(Ai) - 2) | sum(is.na(Bj)) >= (length(Bj) - 2)){
+        rho <- NA
+        p.val <- NA
+      } else {
+        correln <- cor.test(Ai, Bj, method="spearman")  
+        rho <- round(correln$estimate,3)
+        p.val <- correln$p.value
+      }
       source <- paste(Aname)
       metab <- paste(Bname)
       # assign value to row of result data frame
       correlation.result[ij,] <- c(rho, p.val, source, metab)
     }
   }
+  correlation.result$adj_p_value <- round(p.adjust(as.numeric(correlation.result$adj_p_value), method = "BH"), 3)
   detach(package:psych) #issue mixomics, ggplot possibly
   
   return (correlation.result)
 }
-
-

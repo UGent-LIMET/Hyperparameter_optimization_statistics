@@ -62,7 +62,6 @@ if(RUN_PART_STATISTICAL == RUN_CODE){
   NORMALIZE_NOT1 <- 'No TIC normalisation' 				#'if you do not want to perform normalisation, eg. when only coeficient of variance <30% instead'
   
   #NORMALIZE_METHOD options
-  NORMALIZE_WITH_QCs <- 'QC normalisation'              #'for the intensities of each variable (metabolite): devides the samples with the mean intenstity of all QCs'
   NORMALIZE_WITH_IQCs <- 'IQC normalisation'            #'for the intensities of each variable (metabolite): devides the samples with the mean intenstity of IQC present below the samples. So need to have IQC after samples'
   NORMALIZE_QC_RLSC <- 'LOESS normalisation'            #'based on the quality control sample based robust LOESS (locally estimated scatterplot smoothing) signal correction (QC-RLSC) method as described by Dunn et al. (2011) and impletemented statTarget (Luan 2017).'
   NORMALIZE_NOT <- 'No QC normalisation'                #'if you do not want to perform normalisation, eg. when only coeficient of variance <30% instead'
@@ -79,25 +78,26 @@ if(RUN_PART_STATISTICAL == RUN_CODE){
   
   ## Adjustments
   #If you choose 'VARIABLEMETADATA_EXTERN', add additional info here:
-    VARIABLEMETADATA_EXTERN <- 'EXAMPLE_variableMetadata.txt'   #'name.txt' of file. Ignore if file created from pipeline 
-    COLLUMN_NR_START_SAMPLES <- 20  #always 20 (auto and manual must be same format); unless extra col merged!
+    VARIABLEMETADATA_EXTERN <- 'VariableMetadata2.txt'   #'name.txt' of file. Ignore if file created from pipeline 
+    COLLUMN_NR_START_SAMPLES <- 21  #always 20 (auto and manual must be same format); unless extra col merged!
   
   #Source of variableMetadata:
   INPUT_VARIABLES <- VARIABLEMETADATA_EXTERN
   
   #input file2 sampleMetadata:
-  INPUT_SAMPLES <- 'EXAMPLE_sampleMetadata.txt' #don't forget .txt
-  COLLUMN_ORDER <- 6
-  COLLUMN_NR_TYPE <- 7          #column number of the column 'Type'
+  INPUT_SAMPLES <- 'SampleMetadata.txt' #don't forget .txt
+  COLLUMN_ORDER <- 4
+  COLLUMN_NR_TYPE <- 5          #column number of the column 'Type'
   ORDER_NR_OF_FIRST_QC <- 1
-  COLLUMN_NR_LAST_BEFORE_COMPARISONS <- 9
-  AMOUNT_OF_COMPARISONS <- 1      #amount of pairwise comparisons, =0 if none
-  AMOUNT_OF_MULTIPLE_COMPARISONS <- 1         #amount of multiple comparisons, =0 if none present
+  COLLUMN_NR_LAST_BEFORE_COMPARISONS <- 7
+  AMOUNT_OF_COMPARISONS <- 0      #amount of pairwise comparisons, =0 if none
+  AMOUNT_OF_MULTIPLE_COMPARISONS <- 0         #amount of multiple comparisons, =0 if none present
   AMOUNT_OF_PROJECTIONS <- 1     #amount of PCAs (or alternative projection methods in future), =0 if none present
   
   
   #choose method of pretreatment of dataset:	
   HYPERPARAMETERS_SELECTION <- HYPERPARAMETERS_AUTO
+  HYPERPARAMETERS_SELECTION <- HYPERPARAMETERS_MANUAL
   
   #If you choose 'HYPERPARAMETERS_MANUAL', add additional info here:
   if(HYPERPARAMETERS_SELECTION == HYPERPARAMETERS_MANUAL){
@@ -108,7 +108,7 @@ if(RUN_PART_STATISTICAL == RUN_CODE){
     #normalisation method:
     NORMALIZE_METHOD0 <- NORMALIZE_NOT0
     NORMALIZE_METHOD1 <- NORMALIZE_NOT1
-    NORMALIZE_METHOD <- NORMALIZE_NOT   #check data contains correct annotation: QC or IQC !!
+    NORMALIZE_METHOD <- NORMALIZE_WITH_IQCs   #check data contains correct annotation: QC or IQC !!
     
     #in case NORMALIZE_WITH_IS is chosen: add info about IS
     IS_MZ <- 554.2615 #give float of m/z of IS eg. 554.2615 for Leu-Enk in negative mode [M-H]- OR 556.2771 for Leu-Enk in positive mode [M+H]+
@@ -160,7 +160,7 @@ if(RUN_PART_STATISTICAL == RUN_CODE){
   PC_AMOUNT <- FIXED_PC_AMOUNT
 
   #style
-  SIZE_POINTS <- 3   #size samplepoints on scoreplots PCA, (O)PLS, depending on amount of variables. default: 5, big dataset: 3
+  SIZE_POINTS <- 1   #size samplepoints on scoreplots PCA, (O)PLS, depending on amount of variables. default: 5, big dataset: 3
   
 }
 #
