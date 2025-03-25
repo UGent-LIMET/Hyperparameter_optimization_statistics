@@ -568,7 +568,7 @@ dev.off()
 
 try({
   png(paste(name_project,'_PCA biplot across samples and QCs.png', sep=""), width=7, height=5, units="in", res=150)
-  biplot(pca_samples, scale = 0, xlabs=rep(".", ncol(pca_samples$rotation)), ylabs=rep(".", nrow(pca_samples$rotation)))
+  biplot(pca_samples, scale = 0, xlabs=rep(".", nrow(pca_samples$x)), ylabs=rep(".", ncol(pca_samples$x)))
   dev.off()
 })
 
@@ -601,7 +601,7 @@ dev.off()
 
 try({
   png(paste(name_project,'_PCA biplot across samples.png', sep=""), width=7, height=5, units="in", res=150)
-  biplot(pca_samples, scale = 0, xlabs=rep(".", ncol(pca_samples$rotation)), ylabs=rep(".", nrow(pca_samples$rotation)))
+  biplot(pca_samples, scale = 0, xlabs=rep(".", nrow(pca_samples$x)), ylabs=rep(".", ncol(pca_samples$x)))
   dev.off()
 })
 
@@ -668,7 +668,7 @@ if(AMOUNT_OF_COMPARISONS >= 1){
       #pdf(name_plot, height=5,width=7)
       opls_comp <- opls(samples_matrix_comp_no0, comp, 
                         predI=1, orthoI=ORT, algoC="nipals", crossvalI=max_crossval,
-                        permI=100,log10L=FALSE,scaleC="none", fig.pdfC=name_plot ,plotL=TRUE,printL=TRUE) #plotL=T prints plot to rplot.pdf #printL=T shows scores in console
+                        permI=100,log10L=FALSE,scaleC="none", fig.pdfC=name_plot)
       plot(opls_comp)
       #dev.off()
       # remark: in terminal saves under rplots.pdf, in rbox rstudio: no plots save but see in plots window. see plot_bis for results
@@ -846,7 +846,7 @@ if(AMOUNT_OF_COMPARISONS >= 1){
       loadingboot <- function(data, indices, select_predI, select_orthoI, select_crossval){
         
         loadingduringboot1 <- opls(data[indices,2:length(data)], data$comp[indices],predI=select_predI, orthoI=select_orthoI, 
-                                   algoC="nipals", crossvalI=select_crossval,permI=5,log10L=FALSE,scaleC="none",plotL=FALSE,printL=FALSE)
+                                   algoC="nipals", crossvalI=select_crossval,permI=5,log10L=FALSE,scaleC="none")
         
         variablenames <- colnames(data)[-1]             #all names before OPLSDA
         #variablenames <- substr(variablenames, 2,nchar(variablenames)) #only if "X1" => when x instead of "1", check @samplesnoO!
@@ -1256,7 +1256,7 @@ if(AMOUNT_OF_MULTIPLE_COMPARISONS >= 1){
       #pdf(name_plot, height=5,width=7) 
       pls_comp <- opls(samples_matrix_comp_no0, comp,
                        predI=PRE, orthoI=0, algoC="nipals", crossvalI=max_crossval,permI=100, 
-                       log10L=FALSE,scaleC="none", fig.pdfC=name_plot, plotL=TRUE,printL=TRUE)
+                       log10L=FALSE,scaleC="none", fig.pdfC=name_plot)
       plot(pls_comp)
       #dev.off()
       # remark: in terminal saves under rplots.pdf, in rbox rstudio: no plots save but see in plots window. see plot_bis for results

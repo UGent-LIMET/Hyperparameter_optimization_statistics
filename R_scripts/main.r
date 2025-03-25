@@ -10,7 +10,7 @@
 
 ## options
 PATH_USER <- '~/Google Drive/Mijn Drive/Werk-UGent/2024-2-metabolomics/GitHub/hyperparameter_optimization_statistics/' # example path user
-  
+
 CODE_AUTORUN <- 'run code in ternminal automatically'
 CODE_DEVELOPMENT <- 'run code manually in Rstudio for development locally'
 
@@ -39,7 +39,7 @@ if (CODE_RUN_MODE == CODE_AUTORUN){
   # test if there is one argument: if not, return an error
   if (length(args) == 0) {
     stop("Your projectname must be supplied", call.=FALSE)
-  } 
+  }
   if (length(args) > 1) {
     stop("Only one projectname must be supplied", call.=FALSE)
   }
@@ -50,7 +50,7 @@ if (CODE_RUN_MODE == CODE_DEVELOPMENT){
 }
 
 #Source configuration and set input folder
-path_data_in <- file.path(PATH, 'Data/Input') #directory must exist!
+path_data_in <- file.path(PATH, 'Data/Input', name_project) #directory must exist!
 setwd(path_data_in)
 source('Configuration.R')
 
@@ -61,7 +61,7 @@ path_data_out <- file.path(PATH, 'Data/Output', name_project)
 #
 #####################
 
- 
+
 ##########R Pipeline - Main##########
 print(Sys.time())
 start_time_total <- Sys.time()
