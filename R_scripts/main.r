@@ -9,7 +9,7 @@
 #Working directory
 
 ## options
-PATH_USER <- '~/Google Drive/Mijn Drive/Werk-UGent/2024-2-metabolomics/GitHub/hyperparameter_optimization_statistics/' # example path user
+PATH_USER <- '/dir/to/hyperparameter_optimization_statistics/' # example path user
 
 CODE_AUTORUN <- 'run code in ternminal automatically'
 CODE_DEVELOPMENT <- 'run code manually in Rstudio for development locally'
