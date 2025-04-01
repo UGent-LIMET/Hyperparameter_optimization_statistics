@@ -661,17 +661,19 @@ for(filter1 in 1:amount_of_filter1){
               ### PCA for each projection
               suppressMessages(library(pcaMethods))
               if(PC_AMOUNT == DEFAULT_PC_AMOUNT){
-                number_samples <- nrow(samples_matrix_comp_no0)     #Amount of samples
+                number_samples <- min(nrow(samples_matrix_comp_no0), ncol(samples_matrix_comp_no0))      #Amount of samples/obs
                 number_samples <- number_samples-1
               }
               if(PC_AMOUNT == FIXED_PC_AMOUNT){
                 number_samples = FIXED_PC_AMOUNT
-                if(number_samples >= nrow(samples_matrix_comp_no0)){
-                  stop("ERROR: Part II: multivariate analysis stopped because number of PCs exceeds number of samples-1.")
+                if(number_samples >= nrow(samples_matrix_comp_no0) | number_samples >= ncol(samples_matrix_comp_no0)){
+                  warning("Warning: Part II: multivariate analysis: number of PCs exceeds number of samples/obs-1..
+                          The number of PCs has been decreased.")
+                  number_samples = min(nrow(samples_matrix_comp_no0), ncol(samples_matrix_comp_no0)) - 1
                 }
               }
 
-              #max 10pcs, even if default:
+              #max 30pcs, even if default:
               if(number_samples > 30){
                 number_samples <- 30
               }

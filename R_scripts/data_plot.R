@@ -37,7 +37,7 @@ plot_surface <- function(roi){
   #possible colorpallette:
   #display.brewer.all()
   #http://www.cookbook-r.com/Graphs/Colors_(ggplot2)/
-  
+
   ggplot(above_fwhm, aes(x=round_time, y=approx_mz, fill=intensity)) + theme_bw() +
     geom_tile() +
     geom_text(aes(label=round(intensity, 2)), alpha = 0.8, size = 2) +
@@ -45,49 +45,49 @@ plot_surface <- function(roi){
     #stat_density_2d(colour="black", alpha = 0.8) +
     labs(title=paste0("Contour plot of STD-", STD_ID, " with intensities above 50% peaktop"),x="Time (min)", y="MZ (Da)", fill="Intensity")+
     theme_customnogridbox()
-  
+
   #theme(panel.background = element_rect(fill = "blue", size = 0.5, linetype = "solid"), #brewer.pal(1, "Blues")
-  #panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "white"), 
+  #panel.grid.major = element_line(size = 0.5, linetype = 'solid', colour = "white"),
   #panel.grid.minor = element_line(size = 0.25, linetype = 'solid', colour = "white")
   #)
 }
 
 plot_MZplane <- function(data_melt, ppm){
   #plot mz-chromatogram of ROI (reims data) for max 15 samples
-  ggplot(data_melt, aes(x = MZ, y = value)) + 
+  ggplot(data_melt, aes(x = MZ, y = value)) +
     geom_line(aes(color = variable)) +
     geom_point(aes(color = variable, shape=variable)) +
     scale_shape_manual(values=shapes) +
-    geom_vline(xintercept = standard, color = 'black', size = .1)+ #line location theoretical MZ
-    labs(title=paste0("MZ window ", name_standard, " (", ppm, " ppm)"),x="MZ (Da)", y="Intensity")+    
+    geom_vline(xintercept = standard, color = 'black', linewidth = .1)+ #line location theoretical MZ
+    labs(title=paste0("MZ window ", name_standard, " (", ppm, " ppm)"),x="MZ (Da)", y="Intensity")+
     theme_customnogridbox()+
-    theme(legend.position="right", 
+    theme(legend.position="right",
           legend.title = element_text(size=0), #"variable" == samplename
           legend.text = element_text(size=8))
 }
 
 plot_MZplaneWOlegend <- function(data_melt, ppm){
   #plot mz-chromatogram of ROI (reims data)
-  ggplot(data_melt, aes(x = MZ, y = value)) + 
+  ggplot(data_melt, aes(x = MZ, y = value)) +
     geom_line(aes(color = variable)) +
     geom_point(aes(color = variable, shape=variable)) +
     scale_shape_manual(values=shapes) +
-    geom_vline(xintercept = standard, color = 'black', size = .1)+ #line location theoretical MZ
-    labs(title=paste0("MZ window ", name_standard, " (", ppm, " ppm)"),x="MZ (Da)", y="Intensity")+    
+    geom_vline(xintercept = standard, color = 'black', linewidth = .1)+ #line location theoretical MZ
+    labs(title=paste0("MZ window ", name_standard, " (", ppm, " ppm)"),x="MZ (Da)", y="Intensity")+
     theme_customnogridbox()+
     theme(legend.position='none')
 }
 
 plot_linear_regression <- function(std_metadata){
   #plot trendline point + linear regression line with formula/r2
-  ggplot(std_metadata, aes(x = area_ratio, y = Concentration)) + 
+  ggplot(std_metadata, aes(x = area_ratio, y = Concentration)) +
     geom_point(aes(area_ratio)) +
     stat_smooth(method=lm, se=TRUE)+ #with standard error show
     geom_text(x = -Inf, y = Inf, label = equation, parse = TRUE, vjust = 1.5, hjust=-0.1) + #info with form/r2 on plot, not easy on top since diff intensity; so put above x-axis
-    labs(title=paste0("Trendline ", name_standard), x="Area ratio", y="Concentration (ng/ul)")+  #microsymbol nok in rbox  
+    labs(title=paste0("Trendline ", name_standard), x="Area ratio", y="Concentration (ng/ul)")+  #microsymbol nok in rbox
     theme_customnogridbox()+
-    theme(legend.position="right", 
-          legend.title = element_text(size=0), 
+    theme(legend.position="right",
+          legend.title = element_text(size=0),
           legend.text = element_text(size=8))
 }
 
@@ -99,8 +99,8 @@ plot_skewkurt <- function(sampleMatrix) {
   skewkurtplot <- ggplot(skewkurt)+
 	geom_line(aes(x=c(1:dim(skewkurt)[1]),y=skewkurt[,1],color='red'))+
 	geom_line(aes(x=c(1:dim(skewkurt)[1]),y=skewkurt[,2],color='black'))+
-	geom_hline(yintercept=2,color='blue',size=1)+
-	geom_hline(yintercept = -2,color='blue',size=1)+
+	geom_hline(yintercept=2,color='blue',linewidth=1)+
+	geom_hline(yintercept = -2,color='blue',linewidth=1)+
 	theme(legend.position = "right",
 		legend.title = element_text(face="bold",size=11),
 		legend.key = element_rect(fill=NA),
@@ -117,7 +117,7 @@ plot_skewkurt <- function(sampleMatrix) {
 	scale_color_manual(name="Measures",
 					 labels=c("Kurtosis", "Skewness"),
 					 values=c("black","red"))+
-	guides(alpha=FALSE,color=guide_legend(override.aes = list(size=2)))
+	guides(alpha="none",color=guide_legend(override.aes = list(size=2)))
 }
 
 plot_pca <- function(scores, df) {
@@ -132,12 +132,12 @@ plot_pca <- function(scores, df) {
 plot_oplsda <- function(oplsda_scores, comp, opls_comp, HotellingellipseOPLSDA) {
 
   ggplot(oplsda_scores,aes(x = oplsda_scores[,1],y=oplsda_scores[,2]))+
-    stat_ellipse(aes(x=oplsda_scores[,1],y=oplsda_scores[,2],color=comp),size=1,
+    stat_ellipse(aes(x=oplsda_scores[,1],y=oplsda_scores[,2],color=comp),linewidth=1,
                  type="t",level=0.95,show.legend = FALSE,segments=200)+
-    geom_path(data=HotellingellipseOPLSDA,aes(x=HotellingellipseOPLSDA$x,y=HotellingellipseOPLSDA$y),size=1,color='black',linejoin = 'round')+
+    geom_path(data=HotellingellipseOPLSDA,aes(x=x,y=y),linewidth=1,color='black',linejoin = 'round')+
     geom_point(aes(fill=comp,shape=comp),color='black',size=SIZE_POINTS)+
     theme_customnogridbox()+
-    labs(title=paste0("OPLS-DA score plot ", pairwise_comparison), #title="", 
+    labs(title=paste0("OPLS-DA score plot ", pairwise_comparison), #title="",
          x=paste("Predictive component 1 (",format(round(opls_comp@modelDF$R2X[1]*100,digits=1),nsmall = 1),"% explained var.)",sep=""),
          y=paste("Orthogonal component 1 (",format(round(opls_comp@modelDF$R2X[2]*100, digits=1),nsmall = 1),"% explained var.)",sep=""),
          fill="Group",color="Group",shape="Group")+
@@ -148,15 +148,15 @@ plot_oplsda <- function(oplsda_scores, comp, opls_comp, HotellingellipseOPLSDA) 
     scale_shape_manual(values=shapes)+
     scale_fill_brewer(type='seq',palette='Blues')+
     scale_color_brewer(type='seq',palette='Blues')+
-    guides(alpha=FALSE)
+    guides(alpha="none")
     #labs(x =bquote(Q^2~Y(cum) == .(format(opls_comp@summaryDF$`Q2(cum)`),digits=3)))#+ #works only as lab, not in label      #expression(paste("Q"^2,"Y(cum) = ",sep="")),
 }
 
 plot_vip <- function(vipdf) {
   ggplot(vipdf,aes(x=vipdf[,"pvip"],y=vipdf[,"vip_comp"]))+
     geom_point(aes(alpha=0.9,color='black'))+
-    geom_hline(yintercept = 1, color = 'red', size = 1)+
-    geom_vline(xintercept = 0.05, color = 'red', size = 1)+
+    geom_hline(yintercept = 1, color = 'red', linewidth = 1)+
+    geom_vline(xintercept = 0.05, color = 'red', linewidth = 1)+
     theme_customgridbox()+
     labs(title="VIP-plot",x="p-value", y="VIP")+
     scale_color_manual(values="black")+
@@ -166,8 +166,8 @@ plot_vip <- function(vipdf) {
 plot_Splot <- function(Splotframe_comp) {
   ggplot(Splotframe_comp,aes(x=Splotframe_comp[,1],y=Splotframe_comp[,2]))+
     geom_point(aes(alpha=0.9,color=Corr_cutoff))+
-    geom_hline(yintercept = Cutoffvalue_corr,color='red',size=1) +
-    geom_hline(yintercept = -Cutoffvalue_corr,color='red',size=1)+
+    geom_hline(yintercept = Cutoffvalue_corr,color='red',linewidth=1) +
+    geom_hline(yintercept = -Cutoffvalue_corr,color='red',linewidth=1)+
     theme_customgridbox()+
     labs(title="S-plot",x="Covariance", y="Correlation")+
     scale_color_manual(values=c("black","red"))+
@@ -179,7 +179,7 @@ plot_loading <- function(myCIsframe_comp) {
     geom_pointrange(mapping=aes(x=c(1:(length(samples_matrix_comp_no0)-0)),y=myCIsframe_comp[,1],ymin=myCIsframe_comp[,2],ymax=myCIsframe_comp[,3]))+
     theme_customgridbox()+
     labs(title="Loading plot",x="Variable", y="Loading",color="Groups",shape="Groups")+
-    guides(alpha=FALSE,color=guide_legend(override.aes = list(size=3))) 
+    guides(alpha="none",color=guide_legend(override.aes = list(size=3)))
 }
 
 plot_ConfusionMatrix_comp <- function(confusion_matrix_long){
@@ -188,16 +188,16 @@ plot_ConfusionMatrix_comp <- function(confusion_matrix_long){
     geom_tile(aes(fill = value), colour = "white") +
     geom_text(aes(label = sprintf("%1.0f",value)), vjust = 1) +
     scale_fill_gradient(low = "white", high = "steelblue") +
-    labs(title=paste0("Confusion matrix comparison ", pairwise_comparison),x="Actual", y="Predicted")+    
+    labs(title=paste0("Confusion matrix comparison ", pairwise_comparison),x="Actual", y="Predicted")+
     theme_customnogridbox()+
     theme(legend.position='none')
 }
 
 plot_plsda <- function(plsda_scores, comp, pls_comp, HotellingellipsePLSDA) {
   ggplot(plsda_scores,aes(x = plsda_scores[,1],y=plsda_scores[,2]))+
-    stat_ellipse(aes(x=plsda_scores[,1],y=plsda_scores[,2],color=comp),size=1,
+    stat_ellipse(aes(x=plsda_scores[,1],y=plsda_scores[,2],color=comp),linewidth=1,
 		             type="t",level=0.95,show.legend = FALSE,segments=200)+
-    geom_path(data=HotellingellipsePLSDA,aes(x=HotellingellipsePLSDA$x,y=HotellingellipsePLSDA$y),size=1,color='black',linejoin = 'round')+
+    geom_path(data=HotellingellipsePLSDA,aes(x=x,y=y),linewidth=1,color='black',linejoin = 'round')+
     geom_point(aes(fill=comp,shape=comp),color='black',size=SIZE_POINTS)+
     theme_customnogridbox()+
     labs(title=paste0("PLS-DA score plot ", multiple_comparison), #title="", #
@@ -211,7 +211,7 @@ plot_plsda <- function(plsda_scores, comp, pls_comp, HotellingellipsePLSDA) {
     scale_shape_manual(values=shapes)+
     scale_fill_brewer(type='seq',palette='Blues')+
     scale_color_brewer(type='seq',palette='Blues')+
-    guides(alpha=FALSE)
+    guides(alpha="none")
 }
 
 plot_ConfusionMatrix_mcomp <- function(confusion_matrix_long){
@@ -220,26 +220,26 @@ plot_ConfusionMatrix_mcomp <- function(confusion_matrix_long){
     geom_tile(aes(fill = value), colour = "white") +
     geom_text(aes(label = sprintf("%1.0f",value)), vjust = 1) +
     scale_fill_gradient(low = "white", high = "steelblue") +
-    labs(title=paste0("Confusion matrix multiple comparison ", multiple_comparison),x="Actual", y="Predicted")+    
+    labs(title=paste0("Confusion matrix multiple comparison ", multiple_comparison),x="Actual", y="Predicted")+
     theme_customnogridbox()+
     theme(legend.position='none')
 }
 
 plot_pcascores <- function(PCAscores_comp, comp) {
   ggplot(PCAscores_comp,aes(x = PCAscores_comp[,1],y=PCAscores_comp[,2]))+
-    stat_ellipse(aes(x=PCAscores_comp[,1],y=PCAscores_comp[,2],color=comp),size=1,
+    stat_ellipse(aes(x=PCAscores_comp[,1],y=PCAscores_comp[,2],color=comp),linewidth=1,
                  type="t",level=0.95,show.legend = FALSE,segments=200)+
     #geom_path(data=HotellingellipsePCA_comp,aes(x=HotellingellipsePCA_comp$x,y=HotellingellipsePCA_comp$y),size=1,color='black',linejoin = 'round')+
     geom_point(aes(fill=comp,shape=comp, alpha = 0.2),color='black',size=SIZE_POINTS)+
     theme_customnogridbox()+
-    labs(title=paste("PCA score plot ",projection , sep=""), #title="", 
+    labs(title=paste("PCA score plot ",projection , sep=""), #title="",
          x=paste("PC 1 (",format(round(PCAoptnumber@R2[1]*100,digits=1),nsmall = 1),"% explained var.)",sep = ""),
          y=paste("PC 2 (",format(round(PCAoptnumber@R2[2]*100,digits=1),nsmall = 1),"% explained var.)",sep = ""),
          fill="Group",color="Group",shape="Group")+
-    scale_shape_manual(values=shapes)+ 
+    scale_shape_manual(values=shapes)+
     scale_fill_brewer(type='seq',palette='Set1')+
     scale_color_brewer(type='seq',palette='Set1')+
-    guides(alpha=FALSE) 
+    guides(alpha="none")
 }
 
 Hotellingellipse <- function(samples,scorematrix){
@@ -262,14 +262,14 @@ plot_heatmap_hclust <- function(data_melt){
   library(RColorBrewer)
   colors<-brewer.pal(11,name="RdYlBu")
   pal<-colorRampPalette(colors)
-  
-  ggplot(data_melt, aes(x=SampleName, y=variable)) +    
-    geom_tile(aes(fill = value)) +    
+
+  ggplot(data_melt, aes(x=SampleName, y=variable)) +
+    geom_tile(aes(fill = value)) +
     scale_x_discrete (limits = comp_names2$SampleName[ord]) +  #according to clustering!
     scale_fill_gradientn(colours=brewer.pal(n=9, name="PuBuGn")) +  #https://www.r-bloggers.com/2013/10/creating-colorblind-friendly-figures/
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size=SIZE_HEATMAP_YAXIS), 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size=SIZE_HEATMAP_YAXIS),
           #text = element_text(size = 1),
-          axis.text.y = element_text(size = SIZE_HEATMAP_YAXIS))+    #https://statisticsglobe.com/change-font-size-of-ggplot2-plot-in-r-axis-text-main-title-legend 
+          axis.text.y = element_text(size = SIZE_HEATMAP_YAXIS))+    #https://statisticsglobe.com/change-font-size-of-ggplot2-plot-in-r-axis-text-main-title-legend
     labs(x="SampleName", y="Variable", fill="Value") #1 funct for both comp/Mcomp
 }
 
@@ -278,27 +278,27 @@ plot_heatmap_w_group <- function(data_melt){
   library(RColorBrewer)
   colors<-brewer.pal(11,name="RdYlBu")
   pal<-colorRampPalette(colors)
-  
-  ggplot(data_melt, aes(x=order_plot, y=variable)) +    
-    geom_tile(aes(fill = value)) +    
+
+  ggplot(data_melt, aes(x=order_plot, y=variable)) +
+    geom_tile(aes(fill = value)) +
     scale_x_continuous(breaks = 1:length(SampleName_reorder),
                        labels = SampleName_reorder,
                        sec.axis = dup_axis(name = "Group",
                                            breaks = 1:length(SampleName_reorder),
-                                           labels = comp_names$comp))+    
+                                           labels = comp_names$comp))+
     scale_fill_gradientn(colours=brewer.pal(n=9, name="PuBuGn")) +  #https://www.r-bloggers.com/2013/10/creating-colorblind-friendly-figures/
-    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size=SIZE_HEATMAP_YAXIS), 
-          axis.text.y = element_text(size = SIZE_HEATMAP_YAXIS))+    #https://statisticsglobe.com/change-font-size-of-ggplot2-plot-in-r-axis-text-main-title-legend 
+    theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1, size=SIZE_HEATMAP_YAXIS),
+          axis.text.y = element_text(size = SIZE_HEATMAP_YAXIS))+    #https://statisticsglobe.com/change-font-size-of-ggplot2-plot-in-r-axis-text-main-title-legend
     labs(x="SampleName", y="Variable", fill="Value") #1 funct for both comp/Mcomp
 }
 
 plot_duoboxplot <- function(samples_matrix_comp_no0) {
   #https://statisticsglobe.com/boxplot-in-r
-  
-  ggplot(samples_matrix_comp_no0, aes(x = comp, y = samples_matrix_comp_no0[,standard_nr], fill = comp)) +    # Create boxplot chart in ggplot2; 
+
+  ggplot(samples_matrix_comp_no0, aes(x = comp, y = samples_matrix_comp_no0[,standard_nr], fill = comp)) +    # Create boxplot chart in ggplot2;
     geom_boxplot() +
-    labs(title="", #title=paste0("Boxplot comparison ", pairwise_comparison), 
-         x="Pairwise comparison", 
+    labs(title="", #title=paste0("Boxplot comparison ", pairwise_comparison),
+         x="Pairwise comparison",
          y=name_standard)+
     scale_fill_brewer(type='seq',palette='Blues')+
     theme_customgridbox()+
@@ -307,11 +307,11 @@ plot_duoboxplot <- function(samples_matrix_comp_no0) {
 
 plot_multiboxplot <- function(samples_matrix_comp_no0) {
   #https://statisticsglobe.com/boxplot-in-r
-  
-  ggplot(samples_matrix_comp_no0, aes(x = comp, y = samples_matrix_comp_no0[,standard_nr], fill = comp)) +    # Create boxplot chart in ggplot2; 
+
+  ggplot(samples_matrix_comp_no0, aes(x = comp, y = samples_matrix_comp_no0[,standard_nr], fill = comp)) +    # Create boxplot chart in ggplot2;
     geom_boxplot() +
-    labs(title="", #title=paste0("Boxplot multiple comparison ", multiple_comparison), 
-         x="Multiple comparison", 
+    labs(title="", #title=paste0("Boxplot multiple comparison ", multiple_comparison),
+         x="Multiple comparison",
          y=name_standard)+
     scale_fill_brewer(type='seq',palette='Blues')+
     theme_customgridbox()+
@@ -320,15 +320,15 @@ plot_multiboxplot <- function(samples_matrix_comp_no0) {
 
 plot_volcano <- function(volcano_df){
   #https://erikaduan.github.io/posts/2021-01-02-volcano-plots-with-ggplot2/
-  
-  ggplot(volcano_df, aes(x = log2(as.numeric(Fold.change)+0.000001), y = -log10(as.numeric(p.value)+0.000001) )) + 
+
+  ggplot(volcano_df, aes(x = log2(as.numeric(Fold.change)+0.000001), y = -log10(as.numeric(p.value)+0.000001) )) +
     geom_point() +
     geom_hline(yintercept = -log10(0.05),
-               linetype = "dashed") + 
+               linetype = "dashed") +
     geom_vline(xintercept = c(log2(0.5), log2(2)),
                linetype = "dashed") +
-    labs(title= "",  #"p-value versus fold change",  
-         x="log2 fold change", 
+    labs(title= "",  #"p-value versus fold change",
+         x="log2 fold change",
          y="-log10 p-value") +
     theme_customnogridbox()+
     theme(legend.position="none") #no legend
@@ -337,12 +337,12 @@ plot_volcano <- function(volcano_df){
 plot_boxplot <- function(corr_info) {
   #https://statisticsglobe.com/boxplot-in-r
   #https://www.tutorialgateway.org/r-ggplot2-jitter/
-  
-  ggplot(corr_info, aes(x = "Varset1 vs Varset2", y = ABSrho)) +    # Create boxplot chart in ggplot2; 
+
+  ggplot(corr_info, aes(x = "Varset1 vs Varset2", y = ABSrho)) +    # Create boxplot chart in ggplot2;
     #geom_jitter(position=position_jitter(0.2), alpha = 0.8, color="#9ECAE1")+
     geom_boxplot(fill="#9ECAE1", outlier.color="black") +
-    labs(title="", #title=paste0("Boxplot comparison ", pairwise_comparison), 
-         x="", 
+    labs(title="", #title=paste0("Boxplot comparison ", pairwise_comparison),
+         x="",
          y="Rho") +
     scale_fill_brewer(type='seq',palette='Blues')+
     theme_customgridbox()+
@@ -351,14 +351,14 @@ plot_boxplot <- function(corr_info) {
 
 plot_dotplot <- function(corr_info_top) {
   #https://www.tutorialgateway.org/r-ggplot2-jitter/
-  
-  ggplot(corr_info_top, aes(x = "Varset1 vs Varset2", y = ABSrho)) +    # Create boxplot chart in ggplot2; 
+
+  ggplot(corr_info_top, aes(x = "Varset1 vs Varset2", y = ABSrho)) +    # Create boxplot chart in ggplot2;
     geom_jitter(alpha = 0.8, color="#9ECAE1", height = 0, width = 0.1)+
     #geom_jitter(position=position_jitter(0.1), alpha = 0.8, color="#9ECAE1")+ #no! get other value on y-axis!
     geom_point(alpha = 0.8, color="#9ECAE1")+ #overlay ALL points if same value
     #geom_boxplot(fill="#9ECAE1", outlier.color="black") +
-    labs(title="", #title=paste0("Boxplot comparison ", pairwise_comparison), 
-         x="", 
+    labs(title="", #title=paste0("Boxplot comparison ", pairwise_comparison),
+         x="",
          y="Rho") +
     scale_fill_brewer(type='seq',palette='Blues')+
     theme_customgridbox()+
@@ -376,7 +376,7 @@ theme_customgridbox<- function () {
   plot.title = element_text(face="bold",size=18,hjust=0.5),
   panel.background = element_rect(fill=NA),
   panel.grid.major = element_line(colour="grey80"),
-  panel.border = element_rect(fill=NA,size=1))
+  panel.border = element_rect(fill=NA,linewidth=1))
 }
 
 theme_customnogridbox<- function () {
@@ -389,8 +389,8 @@ theme_customnogridbox<- function () {
   axis.ticks = element_line(colour = "black"),
   plot.title = element_text(face="bold",size=18,hjust=0.5),
   panel.background = element_rect(fill=NA),
-  panel.border = element_rect(fill=NA,size=1))
+  panel.border = element_rect(fill=NA,linewidth=1))
 }
 
 
-  
+
